@@ -6,7 +6,7 @@ namespace Y2KaoZ\PhpSession;
 
 /** 
  * @api class SessionStorage
- * @template-implements \ArrayAccess<string,null|scalar|object|array<mixed>> 
+ * @template-implements \ArrayAccess<array-key,mixed> 
  */
 class SessionStorage implements \ArrayAccess
 {
@@ -23,13 +23,11 @@ class SessionStorage implements \ArrayAccess
     }
   }
 
-  /** @return array<string,null|scalar|object|array<mixed>> */
+  /** @return array<array-key,mixed> */
   public function getContents(): array
   {
     assert(isset($_SESSION[$this->namespace]) && is_array($_SESSION[$this->namespace]));
-    /** @var array<string,null|scalar|object|array<mixed>> $namespaceContent */
-    $namespaceContent = $_SESSION[$this->namespace];
-    return $namespaceContent;
+    return $_SESSION[$this->namespace];
   }
 
   public function clear(): void
@@ -37,13 +35,13 @@ class SessionStorage implements \ArrayAccess
     $_SESSION[$this->namespace] = [];
   }
 
-  /** @return null|scalar|object|array<mixed> */
+  /** @return mixed */
   public function __get(string $key): mixed
   {
     return $this->offsetGet($key);
   }
 
-  /** @param null|scalar|object|array<mixed> $value*/
+  /** @param mixed $value*/
   public function __set(string $key, mixed $value): void
   {
     $this->offsetSet($key, $value);
@@ -60,6 +58,7 @@ class SessionStorage implements \ArrayAccess
     $this->offsetUnset($key);
   }
 
+  /** @param array-key $key */
   #[\Override]
   public function offsetExists(mixed $key): bool
   {
@@ -67,6 +66,7 @@ class SessionStorage implements \ArrayAccess
     return array_key_exists($key, $_SESSION[$this->namespace]);
   }
 
+  /** @param array-key $key */
   #[\Override]
   public function offsetGet(mixed $key): mixed
   {
@@ -79,13 +79,16 @@ class SessionStorage implements \ArrayAccess
     return $value;
   }
 
+  /** @param array-key $key */
   #[\Override]
   public function offsetSet(mixed $key, mixed $value): void
   {
-    assert(isset($_SESSION[$this->namespace]) && is_array($_SESSION[$this->namespace]) && is_string($key));
+    assert(isset($_SESSION[$this->namespace]) && is_array($_SESSION[$this->namespace]));
+    assert(is_null($value) || is_scalar($value) || is_object($value) || is_array($value));
     $_SESSION[$this->namespace][$key] = $value;
   }
 
+  /** @param array-key $key */
   #[\Override]
   public function offsetUnset(mixed $key): void
   {

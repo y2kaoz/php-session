@@ -9,7 +9,7 @@ namespace Y2KaoZ\PhpSession;
  */
 class EphemeralStorage extends SessionStorage
 {
-  /** @var array<string,null|scalar|object|array<mixed>> $ephemeralValue */
+  /** @var array<array-key,mixed> $ephemeralValue */
   private array $ephemeralValue;
   public function __construct(null|string $namespace = null)
   {
@@ -18,7 +18,7 @@ class EphemeralStorage extends SessionStorage
     parent::clear();
   }
 
-  /** @return array<string,null|scalar|object|array<mixed>> */
+  /** @return array<array-key,mixed> */
   #[\Override]
   public function getContents(): array
   {
@@ -32,14 +32,12 @@ class EphemeralStorage extends SessionStorage
     $this->ephemeralValue = [];
   }
 
-  /** @return null|scalar|object|array<mixed> */
   #[\Override]
   public function __get(string $key): mixed
   {
     return $this->offsetGet($key);
   }
 
-  /** @param null|scalar|object|array<mixed> $value*/
   #[\Override]
   public function __set(string $key, mixed $value): void
   {
@@ -58,12 +56,14 @@ class EphemeralStorage extends SessionStorage
     $this->offsetUnset($key);
   }
 
+  /** @param array-key $key */
   #[\Override]
   public function offsetExists(mixed $key): bool
   {
     return array_key_exists($key, $this->ephemeralValue);
   }
 
+  /** @param array-key $key */
   #[\Override]
   public function offsetGet(mixed $key): mixed
   {
@@ -73,15 +73,15 @@ class EphemeralStorage extends SessionStorage
     return $this->ephemeralValue[$key];
   }
 
+  /** @param array-key $key */
   #[\Override]
   public function offsetSet(mixed $key, mixed $value): void
   {
-    if ($key !== null) {
-      parent::offsetSet($key, $value);
-      $this->ephemeralValue[$key] = $value;
-    }
+    parent::offsetSet($key, $value);
+    $this->ephemeralValue[$key] = $value;
   }
 
+  /** @param array-key $key */
   #[\Override]
   public function offsetUnset(mixed $key): void
   {
@@ -89,10 +89,11 @@ class EphemeralStorage extends SessionStorage
     unset($this->ephemeralValue[$key]);
   }
 
-  /** @param null|string|non-empty-list<string> $keys */
-  public function refresh(null|string|array $keys = null): void
+  /** @param null|int|string|non-empty-list<int|string> $keys */
+  public function refresh(null|int|string|array $keys = null): void
   {
     if ($keys === null) {
+      /** @var mixed $value */
       foreach ($this->ephemeralValue as $key => $value) {
         parent::offsetSet($key, $value);
       }
@@ -104,6 +105,7 @@ class EphemeralStorage extends SessionStorage
         }
       } catch (\Throwable $t) {
         parent::clear();
+        /** @var mixed $value */
         foreach ($old as $key => $value) {
           parent::offsetSet($key, $value);
         }
