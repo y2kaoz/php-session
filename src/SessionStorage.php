@@ -17,9 +17,9 @@ class SessionStorage implements \ArrayAccess
       if (!session_start()) {
         throw new \Exception("Unable to start php session.");
       }
-      if (!isset($_SESSION[$this->namespace])) {
-        $_SESSION[$this->namespace] = [];
-      }
+    }
+    if (!isset($_SESSION[$this->namespace])) {
+      $_SESSION[$this->namespace] = [];
     }
   }
 
